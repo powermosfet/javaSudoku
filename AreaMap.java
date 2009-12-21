@@ -3,6 +3,8 @@
 class AreaMap{
 	private int[] area;
 
+	public AreaMap(String mapFile){
+	}
 	public int[] exceptRow(int field){
 		return new int[1];
 	}

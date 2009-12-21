@@ -11,4 +11,7 @@ Field: Field.java
 AreaMap: AreaMap.java
 	@$(CC) $^
 
+CArray: CArray.java
+	@$(CC) $^
+
 d: all

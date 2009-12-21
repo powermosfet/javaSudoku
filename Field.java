@@ -1,9 +1,17 @@
-/*BlaBLa*/
+/*Field class
+ *
+ * contains:
+ **/
 
 class Field{
-	private char[] chars;
+	private CArray chars;
 	private boolean[] legal;
 
+	public Field(char[] chars){
+		this(chars, '\0');
+	}
+	public Field(char[] chars, char c){
+	}
 	public boolean canBe(char c){
 		return false;
 	}
