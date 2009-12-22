@@ -14,12 +14,12 @@ class Board{
 	private Field[] field;
 	private AreaMap area;
 
-	public Board(char[] chars, char[] puzzle){
-		this(chars, puzzle, "" + chars.length + ".map");
+	public Board(CArray chars, CArray puzzle){
+		this(chars, puzzle, "" + chars.length() + ".map");
 	}
-	public Board(char[] chars, char[] puzzle, String mapFile){
-		int n = chars.length;
-		int m = puzzle.length;
+	public Board(CArray chars, CArray puzzle, String mapFile){
+		int n = chars.length();
+		int m = puzzle.length();
 		if( n*n != m ){
 			System.out.println("Board size does not match number of characters");
 			System.exit(-1);
