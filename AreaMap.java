@@ -4,23 +4,27 @@ import java.io.*;
 import java.util.*;
 
 class AreaMap{
-	private int[] area;
-	int size;
+	private Integer[] area;
+	private int boardSize;
 
-	public AreaMap(String mapFile){
-		File f = new File(mapFile);
-		Scanner fScanner = new Scanner(f);
+	public AreaMap(String mapFileName, int size){
+		ArrayList<Integer> areaList = new ArrayList<Integer>();
+		File mapFile = new File(mapFileName);
+		Scanner s = new Scanner(mapFile);
 		try{
-			if(fScanner.hasNextInt()){
-				this.size = fScanner.nextInt();
-			} else {
-				System.err.println("Error parsing map file \'" + mapFile + "\'");
-				System.exit(-1);
+			while(s.hasNextInt()){
+				area.add(s.nextInt());
 			}
 		} catch(IOException e){
 			System.err.println(e);
 			System.exit(-1);
 		}
+		boardSize = (int)sqrt(area.size());
+		if(boardSize != size){
+			System.err.println("Size of map file does not match size of board");
+			System.exit(-1);
+		}
+		area = areaList.toArray();
 	}
 	public Integer[] exceptRow(int field){
 		int currentArea = this.area[field];
