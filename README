@@ -1,0 +1,12 @@
+JavaSudoku
+
+A flexible sudoku solver capable of solving sudokus of different sizes and with different area shapes.
+Well, it will be. Eventually.
+
+This is a project whose main purpose is to help the author learn Java.
+This means slow coding, and lots of inefficient code that might be fixed later.
+
+(planned) usage:
+java JavaSudoku [-m mapfile.map] puzzle.sudoku
+
+look at 9.map and easy.sudoku for an idea of how the map and sudoku syntax will be.
