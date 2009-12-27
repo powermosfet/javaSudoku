@@ -13,6 +13,7 @@ import java.lang.* ;
 class Board{
 	private Field[] field;
 	private AreaMap area;
+	private int size;
 
 	public Board(CArray chars, CArray puzzle){
 		this(chars, puzzle, "" + chars.length() + ".map");
@@ -24,6 +25,7 @@ class Board{
 			System.out.println("Board size does not match number of characters");
 			System.exit(-1);
 		}
+		size = n;
 		area = new AreaMap(mapFile);
 	}
 	private void aScan(){

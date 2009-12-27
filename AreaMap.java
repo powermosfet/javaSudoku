@@ -27,11 +27,11 @@ class AreaMap{
 		area = areaList.toArray();
 	}
 	public Integer[] exceptRow(int field){
-		int currentArea = this.area[field];
-		int currentRow = (int)(field / this.size);
+		int currentArea = area[field];
+		int currentRow = (int)(field / size);
 		ArrayList<Integer> returnList = new ArrayList<Integer>();
-		for(int i = 0; i < this.area.length; i++){
-			if(this.area[i] == currentArea && (int)(i / this.size) != currentRow){
+		for(int i = 0; i < area.length; i++){
+			if(area[i] == currentArea && (int)(i / size) != currentRow){
 				returnList.add(i);
 			}
 		}
@@ -39,11 +39,11 @@ class AreaMap{
 		return returnList.toArray(r);
 	}
 	public Integer[] exceptCol(int field){
-		int currentArea = this.area[field];
-		int currentCol = (int)(field % this.size);
+		int currentArea = area[field];
+		int currentCol = (int)(field % size);
 		ArrayList<Integer> returnList = new ArrayList<Integer>();
-		for(int i = 0; i < this.area.length; i++){
-			if(this.area[i] == currentArea && (int)(i % this.size) != currentCol){
+		for(int i = 0; i < area.length; i++){
+			if(area[i] == currentArea && (int)(i % size) != currentCol){
 				returnList.add(i);
 			}
 		}

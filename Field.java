@@ -26,17 +26,17 @@ class Field{
 		}
 	}
 	public boolean canBe(char c){
-		return this.legal.has(c);
+		return legal.has(c);
 	}
 	public CArray canBe(){
-		return this.legal;
+		return legal;
 	}
 	public void canNotBe(char c){
-		this.legal.del(c);
+		legal.del(c);
 	}
 	public CArray canNotBe(){
-		CArray returnValue = this.chars.copy();
-		returnValue.del(this.legal);
+		CArray returnValue = chars.copy();
+		returnValue.del(legal);
 		return returnValue;
 	}
 }
