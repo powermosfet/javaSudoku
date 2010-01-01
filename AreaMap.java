@@ -5,49 +5,83 @@ import java.util.*;
 
 class AreaMap{
 	private Integer[] area;
-	private int boardSize;
+	private int size;
 
 	public AreaMap(String mapFileName, int size){
 		ArrayList<Integer> areaList = new ArrayList<Integer>();
 		File mapFile = new File(mapFileName);
-		Scanner s = new Scanner(mapFile);
 		try{
+			Scanner s = new Scanner(mapFile);
 			while(s.hasNextInt()){
-				area.add(s.nextInt());
+				areaList.add(s.nextInt());
 			}
-		} catch(IOException e){
+		} catch(FileNotFoundException e){
 			System.err.println(e);
 			System.exit(-1);
 		}
-		boardSize = (int)sqrt(area.size());
-		if(boardSize != size){
+		this.size = (int)Math.sqrt(area.length);
+		if(this.size != size){
 			System.err.println("Size of map file does not match size of board");
 			System.exit(-1);
 		}
-		area = areaList.toArray();
+		Integer[] i = new Integer[areaList.size()];
+		area = areaList.toArray(i);
 	}
-	public Integer[] exceptRow(int field){
-		int currentArea = area[field];
-		int currentRow = (int)(field / size);
-		ArrayList<Integer> returnList = new ArrayList<Integer>();
-		for(int i = 0; i < area.length; i++){
-			if(area[i] == currentArea && (int)(i / size) != currentRow){
-				returnList.add(i);
+	public Integer[] areas(){
+		ArrayList<Integer> list = new ArrayList<Integer>();
+		for(int f : area){
+			if(!(list.contains(f))){
+				list.add(f);
 			}
 		}
-		Integer[] r = new Integer[returnList.size()];
-		return returnList.toArray(r);
+		Integer[] i = new Integer[list.size()];
+		return list.toArray(i);
 	}
-	public Integer[] exceptCol(int field){
-		int currentArea = area[field];
-		int currentCol = (int)(field % size);
-		ArrayList<Integer> returnList = new ArrayList<Integer>();
-		for(int i = 0; i < area.length; i++){
-			if(area[i] == currentArea && (int)(i % size) != currentCol){
-				returnList.add(i);
+	public Integer[] outsidersRow(int row, int area){
+		ArrayList<Integer> list = new ArrayList<Integer>();
+		for(int i = 0; i < size; i++){
+			if(this.area[size*row+i] != area){
+				list.add(size*row+i);
 			}
 		}
-		Integer[] r = new Integer[returnList.size()];
-		return returnList.toArray(r);
+		Integer[] i = new Integer[list.size()];
+		return list.toArray(i);
+	}
+	public Integer[] outsidersCol(int col, int area){
+		ArrayList<Integer> list = new ArrayList<Integer>();
+		for(int i = 0; i < size; i++){
+			if(this.area[size*col+i] != area){
+				list.add(size*col+i);
+			}
+		}
+		Integer[] i = new Integer[list.size()];
+		return list.toArray(i);
+	}
+	public Integer[] getAll(int number){
+		int currentArea = area[number];
+		int currentRow = (int)(number / size);
+		int currentCol = (int)(number % size);
+		ArrayList<Integer> list = new ArrayList<Integer>();
+		for(int i = 0; i < size*size; i++){
+			if(area[i] == currentArea){
+				list.add(i);
+			}
+		}
+		Integer[] i = new Integer[list.size()];
+		return list.toArray(i);
+	}
+	public Integer[] get(int number){
+		int currentArea = area[number];
+		int currentRow = (int)(number / size);
+		int currentCol = (int)(number % size);
+		ArrayList<Integer> list = new ArrayList<Integer>();
+		for(int i = 0; i < size*size; i++){
+			if(area[i] == currentArea && (int)(i / size) != currentRow
+					&& (int)(i % size) != currentCol){
+				list.add(i);
+			}
+		}
+		Integer[] i = new Integer[list.size()];
+		return list.toArray(i);
 	}
 }

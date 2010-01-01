@@ -1,8 +1,3 @@
-/*Field class
- *
- * contains:
- **/
-
 class Field{
 	private CArray chars;
 	private CArray legal;
@@ -25,14 +20,20 @@ class Field{
 			legal = charSet;
 		}
 	}
+	public char defined(){
+		return legal.getChar();
+	}
 	public boolean canBe(char c){
 		return legal.has(c);
 	}
 	public CArray canBe(){
 		return legal;
 	}
-	public void canNotBe(char c){
-		legal.del(c);
+	public boolean canNotBe(CArray c){
+		return legal.del(c);
+	}
+	public boolean canNotBe(char c){
+		return legal.del(c);
 	}
 	public CArray canNotBe(){
 		CArray returnValue = chars.copy();
