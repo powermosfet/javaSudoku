@@ -1,6 +1,9 @@
 CC = javac
 
-all: Field Board AreaMap
+all: Field Board AreaMap JavaSudoku
+
+JavaSudoku: JavaSudoku.java
+	@$(CC) $^
 
 Board: Board.java
 	@$(CC) $^
@@ -15,3 +18,4 @@ CArray: CArray.java
 	@$(CC) $^
 
 d: all
+	xterm -e "java JavaSudoku easy.sudoku ; read"

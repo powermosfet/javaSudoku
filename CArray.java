@@ -15,6 +15,10 @@ class CArray{
 	public CArray(){
 		data = null;
 	}
+	public CArray(char c){
+		data = new char[1];
+		data[0] = c;
+	}
 	public CArray(int size){
 		/* Creates an empty array (filled with '\0')
 		 * of size "size"
@@ -39,6 +43,14 @@ class CArray{
 		/* Creates an array with the provided data (chars) */
 		data = chars;
 	}//CArray
+	public String toString(){
+		String s = "[ ";
+		for(char c : data){
+			s += "" + c + " ";
+		}
+		s += "]";
+		return s;
+	}
 	public char getChar(){
 		/* Returns the character if the array
 		 * contains only one. otherwise

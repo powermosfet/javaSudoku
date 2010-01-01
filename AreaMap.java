@@ -19,6 +19,8 @@ class AreaMap{
 			System.err.println(e);
 			System.exit(-1);
 		}
+		area = new Integer[areaList.size()];
+		area = areaList.toArray(area);
 		this.size = (int)Math.sqrt(area.length);
 		if(this.size != size){
 			System.err.println("Size of map file does not match size of board");

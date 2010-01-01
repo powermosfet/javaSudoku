@@ -6,11 +6,11 @@ class Field{
 		this(chars, '\0');
 	}
 	public Field(CArray charSet, char c){
+		chars = new CArray();
 		if(c != '\0'){
-			if(chars.has(c)){
+			if(charSet.has(c)){
 				chars = charSet;
-				legal = new CArray(1);
-				legal.set(0, c);
+				legal = new CArray(c);
 			} else {
 				System.out.println("ERROR! Could not create Field. \'" + c + "\' is not part of the character set.");
 				System.exit(-1);

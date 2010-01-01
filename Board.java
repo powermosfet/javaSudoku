@@ -19,24 +19,39 @@ class Board{
 
 	public Board(String puzzle, String map){
 		File puzzleFile = new File(puzzle);
-		Scanner s = new Scanner(puzzle);
-		String charSetString = "";
-		if(s.hasNext()){
-			charSetString = s.next();
-		}else{
-			System.out.println("Error parsing puzzle file \'" + puzzle + "\'.");
-			System.exit(-1);
-		}
-		charSet = new CArray(charSetString.split(","));
-		size = charSet.length();
-		for(int i = 0; i < size * size; i++){
+		try{
+			Scanner s = new Scanner(puzzleFile);
+			String charSetString = "";
 			if(s.hasNext()){
-				char c = s.next().charAt(0);
-				field[i] = (charSet.has(c)) ? new Field(charSet, c) : new Field(charSet);
+				charSetString = s.next();
 			}else{
-				System.out.println("Error parsing puzzle file \'" + puzzle + "\'.");
+				System.err.println("Error parsing puzzle file \'" + puzzle + "\'.");
+				System.err.println("Could not find character set");
 				System.exit(-1);
 			}
+			charSet = new CArray(charSetString.split(","));
+			size = charSet.length();
+			field = new Field[size*size];
+			//System.err.println("charSetString: " + charSetString);		//DEBUG
+			//System.err.println("charSet: " + charSet);					//DEBUG
+			//System.err.println("size: " + size);						//DEBUG
+			for(int i = 0; i < size * size; i++){
+				if(s.hasNext()){
+					char c = s.next().charAt(0);
+					if(charSet.has(c)){
+						field[i] = new Field(charSet, c);
+					}else{
+						field[i] = new Field(charSet);
+					}
+				}else{
+					System.err.println("Error parsing puzzle file \'" + puzzle + "\'.");
+					System.err.println("Not enough fields");
+					System.exit(-1);
+				}
+			}
+		} catch(FileNotFoundException e){
+			System.err.println(e);
+			System.exit(-1);
 		}
 		area = new AreaMap(map, size);
 	}
@@ -113,6 +128,13 @@ class Board{
 		return false;
 	}
 	public String toString(){
-		return new String("");
+		String s = "";
+		for(int i = 0; i < size*size; i++){
+			char c = field[i].defined();
+			if(c == '\0') c = ' ';
+			s += "" + c + " ";
+			if(i % size == size - 1) s += "\n";
+		}
+		return s;
 	}
 }
