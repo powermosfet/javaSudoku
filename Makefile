@@ -19,3 +19,6 @@ CArray: CArray.java
 
 d: all
 	xterm -e "java JavaSudoku easy.sudoku ; read"
+
+clean:
+	rm *.class

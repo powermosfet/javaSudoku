@@ -2,8 +2,8 @@ class Field{
 	private CArray chars;
 	private CArray legal;
 
-	public Field(CArray chars){
-		this(chars, '\0');
+	public Field(CArray charSet){
+		this(charSet, '\0');
 	}
 	public Field(CArray charSet, char c){
 		chars = new CArray();
@@ -17,7 +17,15 @@ class Field{
 			}
 		} else {
 			chars = charSet;
-			legal = charSet;
+			legal = charSet.copy();
+		}
+	}
+	public void define(char c){
+		if(chars.has(c)){
+			legal = new CArray(c);
+		}else{
+			System.err.println("ERROR! could not define field as \'" + c + "\'. It is not a legal character");
+			System.exit(-1);
 		}
 	}
 	public char defined(){

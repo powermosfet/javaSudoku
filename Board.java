@@ -32,10 +32,7 @@ class Board{
 			charSet = new CArray(charSetString.split(","));
 			size = charSet.length();
 			field = new Field[size*size];
-			//System.err.println("charSetString: " + charSetString);		//DEBUG
-			//System.err.println("charSet: " + charSet);					//DEBUG
-			//System.err.println("size: " + size);						//DEBUG
-			for(int i = 0; i < size * size; i++){
+			for(int i = 0; i < size*size; i++){
 				if(s.hasNext()){
 					char c = s.next().charAt(0);
 					if(charSet.has(c)){
@@ -62,15 +59,16 @@ class Board{
 		 * This process is repeated for all fields
 		 * */
 		boolean changed = false;
+		CArray defined = new CArray();
 		/* for every field in the board */
-		for(int i = 0; i < field.length; i++){
-			int rowOffset = (int)(i / size) * size;
+		for(int i = 0; i < size*size; i++){
+			defined.empty();
+			int rowOffset = (int)(i / size);
 			int colOffset = (int)(i % size);
-			CArray defined = new CArray();
-			for(int j = 0; i < size; i++){
+			for(int j = 0; j < size; j++){
 				/* Collect defined characters in row */
-				if((rowOffset+j != i) && (field[rowOffset+j].defined() != '\0')){
-					defined.add(field[rowOffset+j].defined());
+				if((rowOffset*size+j != i) && (field[rowOffset*size+j].defined() != '\0')){
+					defined.add(field[rowOffset*size+j].defined());
 				}
 				/* Collect defined characters in col */
 				if((size*j+colOffset != i) && (field[size*j+colOffset].defined() != '\0')){
@@ -84,20 +82,72 @@ class Board{
 				}
 			}
 			/*and remove them from this field*/
-			defined.sort();
-			if(field[i].canNotBe(defined)){
-				changed = true;
-			}
+			if(field[i].canNotBe(defined)) changed = true;
 		}
 		return changed;
 	}
-	private void anotherScan(){
+	private boolean anotherScan(){
+		/* This method checks if any character is only allowed
+		 * in one of the fields in its row, column or area.
+		 * If that's the case, that field is set to that character
+		 * */
+		boolean hasChanged = false;
+		for(char c : charSet.getCharArray()){
+			for(int i = 0; i < size; i++){
+				int row = -1;
+				int col = -1;
+				for(int j = 0; j < size; j++){
+					if(field[size*i+j].canBe(c)){
+						if(row < 0){
+							row = i;
+						}else{
+							row = size;
+						}
+					}
+					if(field[size*j+i].canBe(c)){
+						if(col < 0){
+							col = i;
+						}else{
+							col = size;
+						}
+					}
+				}
+				if(row >=0 && row < size){
+					field[row].define(c);
+					hasChanged = true;
+				}
+				if(col >=0 && col < size){
+					field[col].define(c);
+					hasChanged = true;
+				}
+			}
+			for(int a : this.area.areas()){
+				int area = -1;
+				for(int f : this.area.getAll(a)){
+					if(field[f].canBe(c)){
+						if(area < 0){
+							area = f;
+						}else{
+							area = size*size;
+						}
+					}
+				}
+				if(area >=0 && area < size*size){
+					field[area].define(c);
+					hasChanged = true;
+				}
+			}
+		}
+		return hasChanged;
+	}
+	private boolean yetAnotherScan(){
 		/* This method checks if any number is
 		 * legal only in one row or column of an
 		 * area. It then removes it from every field
 		 * that is in the same row or column but not in the same area
 		 * */
 		/* Iterate through each area in the board */
+		boolean hasChanged = false;
 		for(int a : area.areas()){
 			/* Then, for each possible character */
 			for(char c : charSet.getCharArray()){
@@ -113,19 +163,34 @@ class Board{
 				   * all the others in the row */ 
 				if(row >= 0 && row < size){
 					for(int f : area.outsidersRow(row, a)){
-						field[f].canNotBe(c);
+						if(field[f].canNotBe(c)){
+							hasChanged = true;
+						}
 					}
 				} /* ...or column */
 				if(col >= 0 && col < size){
 					for(int f : area.outsidersCol(col, a)){
-						field[f].canNotBe(c);
+						if(field[f].canNotBe(c)){
+							hasChanged = true;
+						}
 					}
 				}
 			}
 		}
+		return hasChanged;
 	}
 	public boolean solve(int recurse){
-		return false;
+		boolean hasChanged = true;
+		System.out.print("Solving");
+		for(int i = 0; hasChanged; i++){
+			System.out.print(".");
+			hasChanged = false;
+			if(aScan()) hasChanged = true;
+			//if(anotherScan()) hasChanged = true;
+			//if(yetAnotherScan()) hasChanged = true;
+		}
+		System.out.print("\n");
+		return true;
 	}
 	public String toString(){
 		String s = "";
@@ -133,7 +198,7 @@ class Board{
 			char c = field[i].defined();
 			if(c == '\0') c = ' ';
 			s += "" + c + " ";
-			if(i % size == size - 1) s += "\n";
+			if(i % size == size - 1 && i+1 < size*size) s += "\n";
 		}
 		return s;
 	}

@@ -44,9 +44,11 @@ class CArray{
 		data = chars;
 	}//CArray
 	public String toString(){
+		if(data == null) return "null";
 		String s = "[ ";
 		for(char c : data){
-			s += "" + c + " ";
+			String adds = (c != '\0')? c+" " : "\\0 ";
+			s += adds;
 		}
 		s += "]";
 		return s;
@@ -85,6 +87,9 @@ class CArray{
 		/* Sorts the array and deletes
 		 * duplicate entries
 		 * */
+		if(data == null){
+			return;
+		}
 		Arrays.sort(data);
 		int duplicates = 0;
 		char[] sorted;
@@ -97,7 +102,7 @@ class CArray{
 			sorted = new char[data.length - duplicates];
 			int i = -1;
 			for(char x:data){
-				if(i >= 0 && sorted[i] != x){
+				if(i < 0 || sorted[i] != x){
 					sorted[++i] = x;
 				}//if
 			}//for
@@ -174,9 +179,7 @@ class CArray{
 		 * */
 		boolean hasDeleted = false;
 		for(char x:other.getCharArray()){
-			if(del(x)){
-				hasDeleted = true;
-			}
+			if(del(x)) hasDeleted = true;
 		}//for
 		return hasDeleted;
 	}//del
@@ -187,5 +190,8 @@ class CArray{
 		add(other);
 		sort();
 	}//merge
+	public void empty(){
+		data = null;
+	}
 }
 
