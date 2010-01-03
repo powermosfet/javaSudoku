@@ -12,7 +12,7 @@ import java.io.* ;
 import java.util.* ;
 
 class Board{
-	private final int RECURSION_MAX = 500;
+	private final int RECURSION_MAX = 10;
 	private Field[] field;
 	private AreaMap area = null;
 	private CArray charSet;
@@ -51,7 +51,12 @@ class Board{
 			System.err.println(e);
 			System.exit(-1);
 		}
-		if(map == "") map = "" + size + ".map";
+		if(map.equals("")){
+			map = "map/" + size + ".map";
+			System.out.println("Using default map file \'" + map + "\'");
+		}else{
+			System.out.println("Using custom map file \'" + map + "\'");
+		}
 		area = new AreaMap(map, size);
 	}
 	public Board(Board original){
@@ -128,11 +133,11 @@ class Board{
 						col = (col < 0) ? size*j+i : size*size;
 					}
 				}
-				if(row >=0 && row < size*size && field[row].defined() == '\0'){
+				if(row >=0 && row < size*size && !field[row].isDefined()){
 					field[row].define(c);
 					hasChanged = true;
 				}
-				if(col >=0 && col < size && field[col].defined() == '\0'){
+				if(col >=0 && col < size && !field[col].isDefined()){
 					field[col].define(c);
 					hasChanged = true;
 				}
@@ -148,7 +153,7 @@ class Board{
 						}
 					}
 				}
-				if(area >=0 && area < size*size && field[area].defined() == '\0'){
+				if(area >=0 && area < size*size && !field[area].isDefined()){
 					field[area].define(c);
 					hasChanged = true;
 				}
@@ -185,12 +190,12 @@ class Board{
 				 * all the others in the row */ 
 				if(row >= 0 && row < size){
 					for(int f : area.outsidersRow(row, a)){
-						if(field[f].defined() == '\0' && field[f].canNotBe(c)) hasChanged = true;
+						if(!field[f].isDefined() && field[f].canNotBe(c)) hasChanged = true;
 					}
 				} /* ...or column */
 				if(col >= 0 && col < size){
 					for(int f : area.outsidersCol(col, a)){
-						if(field[f].defined() == '\0' && field[f].canNotBe(c)) hasChanged = true;
+						if(!field[f].isDefined() && field[f].canNotBe(c)) hasChanged = true;
 					}
 				}
 			}
@@ -261,32 +266,37 @@ class Board{
 		}
 		if(finished() && !check(false)) return this;
 		if(recurse < 0){
-			System.out.println("Inserting random numbers.");
+			System.out.print("Inserting random numbers.\nRecursion level: ");
 			for(int rec = 0; rec <= RECURSION_MAX; rec++){
+				System.out.print((rec == 0)? "" + rec : "," + rec);
 				for(int i = 0; i < size*size; i++){
-					if(field[i].defined() == '\0'){
+					if(!field[i].isDefined()){
 						Board copy = new Board(this);
 						CArray choices = new CArray(copy.getField(i).canBe());
 						for(char c : choices.getCharArray()){
+							copy.getField(i).canBe(choices);
 							copy.getField(i).define(c);
 							solved = copy.solve(rec);
-							if(solved != null) return solved;
+							if(solved != null){
+								System.out.println("");
+								return solved;
+							}
 						}
-						copy.getField(i).canBe(choices);
 					}
 				}
 			}
+			System.out.println("");
 		}else if(recurse > 0){
 			Board copy = new Board(this);
 			for(int i = 0; i < size*size; i++){
-				if(field[i].defined() != '\0') continue;
+				if(field[i].isDefined()) continue;
 				CArray choices = new CArray(field[i].canBe());
 				for(char c : choices.getCharArray()){
+					copy.getField(i).canBe(choices);
 					copy.getField(i).define(c);
 					solved = copy.solve(recurse - 1);
 					if(solved != null) return solved;
 				}
-				copy.getField(i).canBe(choices);
 			}
 		}
 		return null;
@@ -294,9 +304,7 @@ class Board{
 	public String toString(){
 		String s = "";
 		for(int i = 0; i < size*size; i++){
-			char c = field[i].defined();
-			if(c == '\0') c = ' ';
-			s += "" + c + " ";
+			s += field[i].toString();
 			if(i % size == size - 1 && i+1 < size*size) s += "\n";
 		}
 		return s;

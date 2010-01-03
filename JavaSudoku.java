@@ -8,19 +8,20 @@ class JavaSudoku{
 		Action action = Action.solve;
 		String puzzle = "";
 		String map = "";
-		for(int i = 0; i < args.length; i++){
-			if(args[i].equals("-m")){
-				if(i+1 < args.length)
-					map = args[++i];
-				else
-					usage();
-			}else if(args[i].equals("-p")){
-				action = Action.print;
-			}else{
-				puzzle = args[i];
-			}
-		}
-		if(puzzle == "") usage();
+		for(int i = 0; i < args.length; i++){		//Process arguments ////
+			if(args[i].equals("-m")){                                     //
+				if(i+1 < args.length){                                    //
+					map = args[++i];                                      //
+				}else{                                                    //
+					usage();                                              //
+				}                                                         //
+			}else if(args[i].equals("-p")){                               //
+				action = Action.print;                                    //
+			}else{                                                        //
+				puzzle = args[i];                                         //
+			}                                                             //
+		}                                                               ////
+		if(puzzle.equals("")) usage();
 		Board b = new Board(puzzle, map);
 		switch(action){
 			case print:

@@ -1,64 +1,101 @@
+/* Field class
+ *
+ * A Field object represents a single field on the sudoku board.
+ * It contains a CArray of the character set used in the puzzle,
+ * and a CArray of the characters that are legal in this field
+ * */
+
 class Field{
-	private CArray chars;
+	private final CArray charSet;
 	private CArray legal;
 
-	public Field(CArray charSet){
-		this(charSet, '\0');
-	}
 	public Field(Field original){
-		chars = new CArray(original.getChars());
+		/* Copy constructor. creates a new field
+		 * with identical data to original
+		 * */
+		charSet = new CArray(original.getCharSet());
 		legal = new CArray(original.getLegal());
 	}
+	public Field(CArray charSet){
+		/* Create an undefined Field. all characters
+		 * in charSet are legal. */
+		this(charSet, '\0');
+	}
 	public Field(CArray charSet, char c){
-		chars = new CArray();
-		if(c != '\0'){
-			if(charSet.has(c)){
-				chars = charSet;
-				legal = new CArray(c);
-			} else {
+		/* Initializes the Field. If c
+		 * is '\0', the field is undefined. If not, 
+		 * the field is defined to c
+		 * */
+		this.charSet = charSet;				//charSet is final, and can be assigned directly
+		if(c == '\0'){						//If c is '\0', create an undefined field
+			legal = new CArray(charSet);	//legal will be modified, so we need to make a copy.
+		}else{
+			if(!charSet.has(c)){
 				System.out.println("ERROR! Could not create Field. \'" + c + "\' is not part of the character set.");
 				System.exit(-1);
 			}
-		} else {
-			chars = charSet;
-			legal = new CArray(charSet);
+			legal = new CArray(c);			//create CArray with the single char c
 		}
 	}
-	public CArray getChars(){
-		return chars;
+	public CArray getCharSet(){
+		/* Return charSet */
+		return charSet;
 	}
 	public CArray getLegal(){
+		/* Return legal */
 		return legal;
 	}
 	public void define(char c){
-		if(chars.has(c)){
+		/* Reduce legal to contain only
+		 * the single character c
+		 * */
+		if(legal.has(c)){					//Check that c is allowed in this field
 			legal = new CArray(c);
 		}else{
 			System.err.println("ERROR! could not define field as \'" + c + "\'. It is not a legal character");
+			System.err.println("Legal characters are " + legal);
 			System.exit(-1);
 		}
 	}
+	public boolean isDefined(){
+		return (legal.length() == 1);
+	}
 	public char defined(){
+		/* Check if this field is defined */
 		return legal.getChar();
 	}
 	public void canBe(CArray legal){
+		/* Set the characters allowed in this field */
 		this.legal = legal;
 	}
 	public boolean canBe(char c){
+		/* Check if character c is allowed in this field */
 		return legal.has(c);
 	}
 	public CArray canBe(){
+		/* Returns a list of characters that are allowed in this field */
 		return legal;
 	}
 	public boolean canNotBe(CArray c){
+		/* Remove all characters in CArray c from legal */
 		return legal.del(c);
 	}
 	public boolean canNotBe(char c){
+		/* remove the character c from legal */
 		return legal.del(c);
 	}
 	public CArray canNotBe(){
-		CArray returnValue = chars.copy();
-		returnValue.del(legal);
-		return returnValue;
+		/* Returns a list of characters that are not
+		 * allowed in this field
+		 * */
+		CArray illegal = new CArray(charSet);
+		illegal.del(legal);
+		return illegal;
+	}
+	public String toString(){
+		if(isDefined())
+			return "" + defined() + " ";
+		else
+			return "  ";
 	}
 }

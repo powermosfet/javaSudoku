@@ -13,14 +13,16 @@ class CArray{
 	private char[] data;						
 
 	public CArray(){
+		/* Creates an empty CArray */
 		data = null;
-	}
+	}//CArray
 	public CArray(char c){
+		/* Creates a CArray with a single character */
 		data = new char[1];
 		data[0] = c;
-	}
+	}//CArray
 	public CArray(int size){
-		/* Creates an empty array (filled with '\0')
+		/* Creates a CArray (filled with '\0')
 		 * of size "size"
 		 * */
 		data = new char[size];
@@ -29,7 +31,9 @@ class CArray{
 		}//for
 	}//CArray
 	public CArray(String[] chars){
-		/* Creates an array with the provided data (chars) */
+		/* Creates a CArray from an array of Strings.
+		 * uses the first character in each String.
+		 * */
 		data = new char[chars.length];
 		for(int i = 0; i < chars.length; i++){
 			if(chars[i].length() >= 1){
@@ -37,28 +41,32 @@ class CArray{
 			}else{
 				data[i] = '\0';
 			}
-		}
+		}//for
 	}//CArray
 	public CArray(char[] chars){
-		/* Creates an array with the provided data (chars) */
+		/* Creates a CArray from a char array*/
 		data = chars;
 	}//CArray
 	public CArray(CArray original){
+		/* A copy constructor.
+		 * Creates a CArray identical to original
+		 **/
 		data = new char[original.length()];
 		for(int i = 0; i < original.length(); i++){
 			data[i] = original.get(i);
-		}
-	}
+		}//for
+	}//CArray
 	public String toString(){
+		/* Returns a String representation of the array */
 		if(data == null) return "null";
 		String s = "[ ";
 		for(char c : data){
 			String adds = (c != '\0')? c+" " : "\\0 ";
 			s += adds;
-		}
+		}//for
 		s += "]";
 		return s;
-	}
+	}//toString
 	public char getChar(){
 		/* Returns the character if the array
 		 * contains only one. otherwise
@@ -66,27 +74,27 @@ class CArray{
 		 * */
 		if(data != null && data.length == 1){
 			return data[0];
-		} else {
+		}else{
 			return '\0';
-		}//if
+		}
 	}//getChar
 	public char get(int i){
-		return data[i];
-	}
-	public CArray copy(){
-		CArray theCopy = new CArray(data.length);
-		for(int i = 0; i < data.length; i++){
-			theCopy.set(i, data[i]);
-		}
-		return theCopy;
-	}
-	public void set(int i, char c){
-		if(data == null || i < 0 || i >= data.length){
-			System.out.println("ERROR! CArray index out of range");
+		/* Returns the specified character */
+		if(i < 0 || i >= data.length){
+			System.err.println("ERROR! CArray.get index out of range");
 			System.exit(-1);
-		} else {
-		data[i] = c;
 		}//if
+		return data[i];
+	}//get
+	public void set(int i, char c){
+		/* set the character at the given index
+		 * to c
+		 * */
+		if(data == null || i < 0 || i >= data.length){
+			System.out.println("ERROR! CArray.set index out of range");
+			System.exit(-1);
+		}//if
+		data[i] = c;
 	}//set
 	public char[] getCharArray(){
 		/* Returns the data as a char array */
@@ -96,33 +104,29 @@ class CArray{
 		/* Sorts the array and deletes
 		 * duplicate entries
 		 * */
-		if(data == null){
-			return;
-		}
+		if(data == null) return;					//Don't sort if it's empty
 		Arrays.sort(data);
 		int duplicates = 0;
 		char[] sorted;
-		if(data.length > 1){
-			for(int i = 1; i < data.length; i++){
-				if(data[i] == data[i-1]){
+		if(data.length > 1){						//If there's more than one charater,
+			for(int i = 1; i < data.length; i++){	//check for duplicates
+				if(data[i] == data[i-1])
 					duplicates++;
-				}//if
-			}//for
+			}
 			sorted = new char[data.length - duplicates];
 			int i = -1;
-			for(char x:data){
-				if(i < 0 || sorted[i] != x){
+			for(char x:data){						//Add each character to the new array
+				if(i < 0 || sorted[i] != x)			//if it's not already there
 					sorted[++i] = x;
-				}//if
 			}//for
 			data = sorted;
 		}//if
 	}//sort
 	public boolean has(char c){
 		/* Checks if the array contains character c */
-		if(data == null) return false;
+		if(data == null) return false;		//It doesn't contain the character if it's empty
 		boolean itHas = false;
-		for(char x:data){
+		for(char x:data){					//Check each character
 			if(x == c){
 				itHas = true;
 			}//if
@@ -131,67 +135,62 @@ class CArray{
 	}//has
 	public int length(){
 		/* Returns length of array */
-		return data.length;
+		return (data == null)? 0 : data.length;
 	}//length
 	public void add(char c){
 		/* Adds a single character to array */
-		if(data == null){
-			data = new char[1];
-			data[0] = c;
-		}else{
-			char[] bigger = new char[data.length + 1];
-			for(int i = 0; i < data.length; i++){
-				bigger[i] = data[i];
-			}//for
-			bigger[data.length] = c;
-			data = bigger;
-		}
+		int len = (data == null)? 0 : data.length;	//Get number of characters in old array
+		char[] bigger = new char[len + 1];			//Create new array that is one bigger
+		for(int i = 0; i < len; i++){
+			bigger[i] = data[i];					//Copy existing data, if any
+		}//for
+		bigger[len] = c;							//Add the new character at the last position
+		data = bigger;
 	}//add
 	public void add(CArray other){
-		/* Concatenates this and other */
-		if(data == null){
+		/* Combines this and other to one big CArray */
+		if(data == null){							//If this CArray is empty, just overwrite it
 			data = other.getCharArray();
-		}else{
+		}//if
 			char[] bigger = new char[data.length + other.length()];
-			for(int i = 0; i < data.length; i++){
-				bigger[i] = data[i];
+			for(int i = 0; i < data.length; i++){	//Create new array big enough to hold both arrays' data
+				bigger[i] = data[i];				//Copy over the data from this CArray
 			}//for
-			char[] otherChars = other.getCharArray();
 			for(int i = 0; i < other.length(); i++){
-				bigger[data.length + i] = otherChars[i];
+				bigger[data.length + i] = other.get(i);
 			}//for
 			data = bigger;
-		}
 	}//add
 	public boolean del(char c){
 		/* Deletes all occurrences of c in array */
 		int hits = 0;
 		char[] smaller;
 		for(char x:data){
-			if(x == c){
+			if(x == c){				//Search for c in data
 				hits++;
 			}//if
 		}//for
 		smaller = new char[data.length - hits];
-		int i = 0;
+		int i = 0;					//Allocate new array
 		for(char x:data){
 			if(x != c){
-				smaller[i++] = x;
+				smaller[i++] = x;	//Add all characters that are not c
 			}//if
 		}//for
 		data = smaller;
-		return (hits > 0);
+		return (hits > 0);			//did we delete anything?
 	}//del
 	public boolean del(CArray other){
 		/* Deletes every instance of
 		 * every character in other
 		 * from array
 		 * */
+		if(other.isEmpty()) return false;	//nothing to delete
 		boolean hasDeleted = false;
-		for(char x:other.getCharArray()){
-			if(del(x)) hasDeleted = true;
+		for(char x:other.getCharArray()){	//For each character in other
+			if(del(x)) hasDeleted = true;	//delete it from this
 		}//for
-		return hasDeleted;
+		return hasDeleted;					//did we delete anything?
 	}//del
 	public void merge(CArray other){
 		/* Adds all characters from other that isn't
@@ -200,8 +199,13 @@ class CArray{
 		add(other);
 		sort();
 	}//merge
+	public boolean isEmpty(){
+		/* Checks if the array is empty */
+		return (data == null);
+	}//isEmpty
 	public void empty(){
+		/* Deletes all content */
 		data = null;
-	}
+	}//empty
 }
 
