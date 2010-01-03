@@ -7,6 +7,13 @@ class AreaMap{
 	private Integer[] area;
 	private int size;
 
+	public AreaMap(AreaMap original){
+		size = original.getSize();
+		area = new Integer[size*size];
+		for(int i = 0; i < size*size; i++){
+			area[i] = original.getAreaNumber(i);
+		}
+	}
 	public AreaMap(String mapFileName, int size){
 		ArrayList<Integer> areaList = new ArrayList<Integer>();
 		File mapFile = new File(mapFileName);
@@ -28,6 +35,12 @@ class AreaMap{
 		}
 		Integer[] i = new Integer[areaList.size()];
 		area = areaList.toArray(i);
+	}
+	public int getAreaNumber(int i){
+		return area[i];
+	}
+	public int getSize(){
+		return size;
 	}
 	public Integer[] areas(){
 		ArrayList<Integer> list = new ArrayList<Integer>();
@@ -52,8 +65,8 @@ class AreaMap{
 	public Integer[] outsidersCol(int col, int area){
 		ArrayList<Integer> list = new ArrayList<Integer>();
 		for(int i = 0; i < size; i++){
-			if(this.area[size*col+i] != area){
-				list.add(size*col+i);
+			if(this.area[size*i+col] != area){
+				list.add(size*i+col);
 			}
 		}
 		Integer[] i = new Integer[list.size()];

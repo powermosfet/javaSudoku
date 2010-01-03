@@ -43,6 +43,12 @@ class CArray{
 		/* Creates an array with the provided data (chars) */
 		data = chars;
 	}//CArray
+	public CArray(CArray original){
+		data = new char[original.length()];
+		for(int i = 0; i < original.length(); i++){
+			data[i] = original.get(i);
+		}
+	}
 	public String toString(){
 		if(data == null) return "null";
 		String s = "[ ";
@@ -64,6 +70,9 @@ class CArray{
 			return '\0';
 		}//if
 	}//getChar
+	public char get(int i){
+		return data[i];
+	}
 	public CArray copy(){
 		CArray theCopy = new CArray(data.length);
 		for(int i = 0; i < data.length; i++){
@@ -111,6 +120,7 @@ class CArray{
 	}//sort
 	public boolean has(char c){
 		/* Checks if the array contains character c */
+		if(data == null) return false;
 		boolean itHas = false;
 		for(char x:data){
 			if(x == c){

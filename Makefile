@@ -18,7 +18,7 @@ CArray: CArray.java
 	@$(CC) $^
 
 d: all
-	xterm -e "java JavaSudoku easy.sudoku ; read"
+	xterm -e "java JavaSudoku hard.sudoku ; read"
 
 clean:
 	rm *.class

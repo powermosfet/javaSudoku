@@ -5,6 +5,10 @@ class Field{
 	public Field(CArray charSet){
 		this(charSet, '\0');
 	}
+	public Field(Field original){
+		chars = new CArray(original.getChars());
+		legal = new CArray(original.getLegal());
+	}
 	public Field(CArray charSet, char c){
 		chars = new CArray();
 		if(c != '\0'){
@@ -17,8 +21,14 @@ class Field{
 			}
 		} else {
 			chars = charSet;
-			legal = charSet.copy();
+			legal = new CArray(charSet);
 		}
+	}
+	public CArray getChars(){
+		return chars;
+	}
+	public CArray getLegal(){
+		return legal;
 	}
 	public void define(char c){
 		if(chars.has(c)){
@@ -30,6 +40,9 @@ class Field{
 	}
 	public char defined(){
 		return legal.getChar();
+	}
+	public void canBe(CArray legal){
+		this.legal = legal;
 	}
 	public boolean canBe(char c){
 		return legal.has(c);
