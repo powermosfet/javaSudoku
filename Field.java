@@ -5,6 +5,12 @@
  * and a CArray of the characters that are legal in this field
  * */
 
+class NoLegalCharactersException extends Exception {
+	public NoLegalCharactersException(String msg){
+		super(msg);
+	}
+}
+
 class Field{
 	private final CArray charSet;
 	private CArray legal;
@@ -69,9 +75,10 @@ class Field{
 			if(!canBe(c)) return false;
 		return true;
 	}
-	public void canBe(CArray legal){
+	public void canBe(CArray legal) throws NoLegalCharactersException{
 		/* Set the characters allowed in this field */
 		this.legal = legal;
+		if(legal.isEmpty()) throw new NoLegalCharactersException("Field has no legal characters");
 	}
 	public boolean canBe(char c){
 		/* Check if character c is allowed in this field */
@@ -81,24 +88,23 @@ class Field{
 		/* Returns a list of characters that are allowed in this field */
 		return legal;
 	}
-	public boolean canNotBe(CArray c){
+	public boolean canNotBe(CArray c) throws NoLegalCharactersException{
 		/* Remove all characters in CArray c from legal */
-		return legal.del(c);
+		boolean returnValue = legal.del(c);
+		if(legal.isEmpty()) throw new NoLegalCharactersException("Field has no legal characters");
+		return returnValue;
 	}
-	public boolean canNotBe(char c){
+	public boolean canNotBe(char c) throws NoLegalCharactersException{
 		/* remove the character c from legal */
-		return legal.del(c);
-	}
-	public CArray canNotBe(){
-		/* Returns a list of characters that are not
-		 * allowed in this field
-		 * */
-		CArray illegal = new CArray(charSet);
-		illegal.del(legal);
-		return illegal;
+		boolean returnValue = legal.del(c);
+		if(legal.isEmpty()) throw new NoLegalCharactersException("Field has no legal characters");
+		return returnValue;
 	}
 	public String toString(){
-		if(legal.length() == 0) return "ERROR! ";
+		if(legal.isEmpty()){
+			System.err.println("ERROR!");
+			return "ERROR! ";
+		}
 		if(isDefined())
 			return "" + defined() + " ";
 		else

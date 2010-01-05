@@ -102,7 +102,7 @@ class Board{
 	public CArray getCharSet(){
 		return charSet;
 	}
-	private boolean scanOne(){
+	private boolean scanOne() throws NoLegalCharactersException{
 		/* This method searches through each field's
 		 * row, column and area for defined numbers.
 		 * These numbers are removed from the current field.
@@ -202,7 +202,7 @@ class Board{
 		}
 		return hasChanged;
 	}
-	private boolean scanThree(){
+	private boolean scanThree() throws NoLegalCharactersException{
 		/* This method checks if any number is
 		 * legal only in one row or column of an
 		 * area. It then removes it from every field
@@ -244,7 +244,7 @@ class Board{
 		}
 		return hasChanged;
 	}
-	private boolean scanFour(){
+	private boolean scanFour() throws NoLegalCharactersException{
 		/* This method scans the board looking
 		 * for twins, triplets and so on
 		 * */
@@ -263,140 +263,80 @@ class Board{
 				for(; i < iMax; i++){
 					subSetIndex[i+1] = subSetIndex[i] + 1;
 				}
-				hasChanged = scanFourSubScan(subSetIndex);
+				if(scanFourSubScan(subSetIndex)) hasChanged = true;
 			}
 		}
 		return hasChanged;
 	}
-	private boolean scanFourSubScan(int[] subSetIndex){
+	private boolean scanFourSubScan(int[] subSetIndex) throws NoLegalCharactersException{
 		boolean hasChanged = false;
 		int subSetSize = subSetIndex.length;
-		CArray subSet = new CArray();
-		ArrayList<Integer> hiddenTwins; 
 		ArrayList<Integer> regularTwins; 
-		CArray whatShouldICallThis; 
+		CArray thingy; 
+		CArray subSet = new CArray();
 		for(int i : subSetIndex)
 			subSet.add(charSet.get(i));
-		for(int i = 0; i < size; i++){
-			hiddenTwins = new ArrayList<Integer>();
-			whatShouldICallThis = new CArray();
-			for(int f : ROW[i]){
-				if(field[f].canBeAllOf(subSet)){
-					hiddenTwins.add(f);
-					whatShouldICallThis.merge(field[f].canBe());
-				}
-			}
-			if(hiddenTwins.size() == subSetSize){
-				whatShouldICallThis.del(subSet);
-				Integer[] x = new Integer[hiddenTwins.size()];
-				for(int f : hiddenTwins.toArray(x)){
-					if(field[f].canNotBe(whatShouldICallThis)) hasChanged = true;
-				}
-			}
-			hiddenTwins = new ArrayList<Integer>();
-			whatShouldICallThis = new CArray();
-			for(int f : COL[i]){
-				if(field[f].canBeAllOf(subSet)){
-					hiddenTwins.add(f);
-					whatShouldICallThis.merge(field[f].canBe());
-				}
-			}
-			if(hiddenTwins.size() == subSetSize){
-				whatShouldICallThis.del(subSet);
-				Integer[] x = new Integer[hiddenTwins.size()];
-				for(int f : hiddenTwins.toArray(x)){
-					if(field[f].canNotBe(whatShouldICallThis)) hasChanged = true;
-				}
-			}
-		}
-		for(int a : area.areas()){
-			hiddenTwins = new ArrayList<Integer>();
-			whatShouldICallThis = new CArray();
-			for(int f : area.getAll(a)){
-				if(field[f].canBeAllOf(subSet)){
-					hiddenTwins.add(f);
-					whatShouldICallThis.merge(field[f].canBe());
-				}
-			}
-			if(hiddenTwins.size() == subSetSize){
-				whatShouldICallThis.del(subSet);
-				Integer[] x = new Integer[hiddenTwins.size()];
-				for(int f : hiddenTwins.toArray(x)){
-					if(field[f].canNotBe(whatShouldICallThis)) hasChanged = true;
-				}
-			}
-		}
 		/* Scan each row, column and area for regular twins, triplets and so on */
 		for(int i = 0; i < size; i++){
 			regularTwins = new ArrayList<Integer>();
-			whatShouldICallThis = new CArray();
+			thingy = new CArray();
 			for(int f : ROW[i]){
 				if(field[f].isDefined() && subSet.has(field[f].defined())){
 					regularTwins = new ArrayList<Integer>();
 					break;
 				}
 				if(subSet.hasAll(field[f].canBe())){
-					whatShouldICallThis.merge(field[f].canBe());
+					thingy.merge(field[f].canBe());
 					regularTwins.add(f);
 				}
 			}
 			if(regularTwins.size() == subSetSize){
-				System.err.println("Found twins of subset " + subSet + " in row " + i + "\n" + toString());
 				for(int f : ROW[i]){
-					System.err.print("Field " + f + ": " + field[f].canBe() + " => ");
 					if(!regularTwins.contains(f)){
 						if(field[f].canNotBe(subSet)) hasChanged = true;
 					}
-					System.err.println("Field " + f + ": " + field[f].canBe());
 				}
 				if(hasChanged) return true;
 			}
 			regularTwins = new ArrayList<Integer>();
-			whatShouldICallThis = new CArray();
+			thingy = new CArray();
 			for(int f : COL[i]){
 				if(field[f].isDefined() && subSet.has(field[f].defined())){
 					regularTwins = new ArrayList<Integer>();
 					break;
 				}
 				if(subSet.hasAll(field[f].canBe())){
-					whatShouldICallThis.merge(field[f].canBe());
+					thingy.merge(field[f].canBe());
 					regularTwins.add(f);
 				}
 			}
 			if(regularTwins.size() == subSetSize){
-				System.err.println("Found twins of subset " + subSet + " in column " + i + "\n" + toString());
 				for(int f : COL[i]){
-					System.err.print("Field " + f + ": " + field[f].canBe() + " => ");
 					if(!regularTwins.contains(f)){
 						if(field[f].canNotBe(subSet)) hasChanged = true;
 					}
-					System.err.println(field[f].canBe());
 				}
-				System.err.println("hasChanged = " + hasChanged);
 				if(hasChanged) return true;
 			}
 		}
 		for(int a : area.areas()){
 			regularTwins = new ArrayList<Integer>();
-			whatShouldICallThis = new CArray();
+			thingy = new CArray();
 			for(int f : area.getAll(a)){
 				if(field[f].isDefined() && subSet.has(field[f].defined())){
 					regularTwins = new ArrayList<Integer>();
 					break;
 				}
 				if(subSet.hasAll(field[f].canBe())){
-					whatShouldICallThis.merge(field[f].canBe());
+					thingy.merge(field[f].canBe());
 					regularTwins.add(f);
 				}
 			}
 			if(regularTwins.size() == subSetSize){
-				System.err.println("Found twins of subset " + subSet + " in area " + a + "\n" + toString());
 				for(int f : area.getAll(a)){
-					System.err.print("Field " + f + ": " + field[f].canBe() + " => ");
 					if(!regularTwins.contains(f)){
 						if(field[f].canNotBe(subSet)) hasChanged = true;
 					}
-					System.err.println("Field " + f + ": " + field[f].canBe());
 				}
 				if(hasChanged) return true;
 			}
@@ -445,74 +385,43 @@ class Board{
 		return true;
 	}
 	public Board solve(){
-		System.out.println("Solving...");
-		return solve(-1);
-	}
-	public Board solve(int recurse){
-		boolean hasChanged = true;
-		Board solved;
+		boolean hasChanged;
+		Board solved, copy;
 		/* Loop until there's nothing more to do */
-		while(hasChanged){
-			hasChanged = false;
-			System.err.print("scan [1] ");
-			while(scanOne()){
-				System.out.print("+");
-				hasChanged = true;
-			}
-			System.err.print("-\nscan [2] ");
-			while(scanTwo()){
-				System.out.print("+");
-				hasChanged = true;
-			}
-			System.err.print("-\nscan [3] ");
-			while(scanThree()){
-				System.out.print("+");
-				hasChanged = true;
-			}
-			System.err.print("-\n");
-		}
-		System.err.print("scan [4] ");
-		while(scanFour()){
-			System.out.print("+");
-			hasChanged = true;
-		}System.err.print("-\n");
+		do{
+			do{
+				hasChanged = false;
+				try{
+					while(scanOne()) hasChanged = true;
+					while(scanTwo()) hasChanged = true;
+					while(scanThree()) hasChanged = true;
+				}catch(NoLegalCharactersException e){
+					return null;
+				}
+			}while(hasChanged);
+			/* Try scanFour */
+			/*
+			try{
+				hasChanged = scanFour();
+			}catch(NoLegalCharactersException e){
+				return null;
+			}*/
+		}while(hasChanged);
 		if(check()) return null;
 		/* are we done? */
 		if(finished()) return this;
-		if(recurse < 0){
-			System.out.print("Inserting random numbers.\nRecursion level: ");
-			for(int rec = 0; rec <= RECURSION_MAX; rec++){
-				System.out.print(((rec == 0)? "":",") + rec);
-				for(int i = 0; i < size*size; i++){
-					if(!field[i].isDefined()){
-						Board copy = new Board(this);
-						CArray choices = new CArray(copy.getField(i).canBe());
-						for(char c : choices.getCharArray()){
-							copy.getField(i).canBe(choices);
-							copy.getField(i).define(c);
-							solved = copy.solve(rec);
-							if(solved != null){
-								System.out.println("");
-								return solved;
-							}
-						}
-						copy.getField(i).canBe(choices);
-					}
-				}
-			}
-			System.out.println("");
-		}else if(recurse > 0){
-			Board copy = new Board(this);
-			for(int i = 0; i < size*size; i++){
-				if(field[i].isDefined()) continue;
-				CArray choices = new CArray(field[i].canBe());
-				for(char c : choices.getCharArray()){
-					copy.getField(i).canBe(choices);
+		System.err.println("******************\n" + toString());
+		for(int i = 0; i < size*size; i++){
+			if(!field[i].isDefined()){					//Pick a field that is undefined
+				copy = new Board(this);
+				CArray choices = new CArray(copy.getField(i).canBe());
+				for(char c : choices.getCharArray()){	//Try each possibility
 					copy.getField(i).define(c);
-					solved = copy.solve(recurse - 1);
-					if(solved != null) return solved;
+					solved = copy.solve();
+					if(solved != null) return solved;	//Succeed
+					copy = new Board(this);
 				}
-				copy.getField(i).canBe(choices);
+				break;									//or give up
 			}
 		}
 		return null;
