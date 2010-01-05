@@ -100,39 +100,42 @@ class CArray{
 		/* Returns the data as a char array */
 		return data;
 	}//getCharArray
+	public void unique(){
+		/* Remove all duplicate items from array */
+		if(data == null) return;
+		CArray a = new CArray();
+		for(char c : data){
+			if(!a.has(c)) a.add(c);
+		}
+		data = a.getCharArray();
+	}
 	public void sort(){
 		/* Sorts the array and deletes
 		 * duplicate entries
 		 * */
 		if(data == null) return;					//Don't sort if it's empty
 		Arrays.sort(data);
-		int duplicates = 0;
-		char[] sorted;
-		if(data.length > 1){						//If there's more than one charater,
-			for(int i = 1; i < data.length; i++){	//check for duplicates
-				if(data[i] == data[i-1])
-					duplicates++;
-			}
-			sorted = new char[data.length - duplicates];
-			int i = -1;
-			for(char x:data){						//Add each character to the new array
-				if(i < 0 || sorted[i] != x)			//if it's not already there
-					sorted[++i] = x;
-			}//for
-			data = sorted;
-		}//if
+		unique();
 	}//sort
 	public boolean has(char c){
 		/* Checks if the array contains character c */
 		if(data == null) return false;		//It doesn't contain the character if it's empty
-		boolean itHas = false;
 		for(char x:data){					//Check each character
-			if(x == c){
-				itHas = true;
-			}//if
+			if(x == c) return true;
 		}//for
-		return itHas;
+		return false;
 	}//has
+	public boolean hasAll(CArray chars){
+		if(data == null) return false;
+		for(char c : chars.getCharArray()){
+			boolean hasCharacter = false;
+			for(char cThis : data){
+				if(cThis == c) hasCharacter = true;
+			}
+			if(!hasCharacter) return false;
+		}
+		return true;
+	}
 	public int length(){
 		/* Returns length of array */
 		return (data == null)? 0 : data.length;
@@ -197,7 +200,7 @@ class CArray{
 		 * already there. It also sorts the array
 		 * */
 		add(other);
-		sort();
+		unique();
 	}//merge
 	public boolean isEmpty(){
 		/* Checks if the array is empty */

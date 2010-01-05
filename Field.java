@@ -64,6 +64,11 @@ class Field{
 		/* Check if this field is defined */
 		return legal.getChar();
 	}
+	public boolean canBeAllOf(CArray chars){
+		for(char c : chars.getCharArray())
+			if(!canBe(c)) return false;
+		return true;
+	}
 	public void canBe(CArray legal){
 		/* Set the characters allowed in this field */
 		this.legal = legal;
@@ -93,6 +98,7 @@ class Field{
 		return illegal;
 	}
 	public String toString(){
+		if(legal.length() == 0) return "ERROR! ";
 		if(isDefined())
 			return "" + defined() + " ";
 		else

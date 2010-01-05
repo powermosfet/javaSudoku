@@ -244,26 +244,184 @@ class Board{
 		}
 		return hasChanged;
 	}
-	public boolean check(boolean exit){
+	private boolean scanFour(){
+		/* This method scans the board looking
+		 * for twins, triplets and so on
+		 * */
+		boolean hasChanged = false;
+		for(int subSetSize = 2; subSetSize < size; subSetSize++){				//generate subsets (of charSet) of increasing size
+			int[] subSetIndex = new int[subSetSize];
+			for(int i = 0; i < subSetSize; i++)
+				subSetIndex[i] = i;
+			hasChanged = scanFourSubScan(subSetIndex);
+			int iMax = subSetSize - 1;
+			int i = iMax;
+			while(true){
+				for(;(i >= 0)&&((subSetIndex[i] >= size-1)||(i < iMax && subSetIndex[i] >= subSetIndex[i+1]-1)); i--){}
+				if(i < 0) break;
+				subSetIndex[i] += 1;
+				for(; i < iMax; i++){
+					subSetIndex[i+1] = subSetIndex[i] + 1;
+				}
+				hasChanged = scanFourSubScan(subSetIndex);
+			}
+		}
+		return hasChanged;
+	}
+	private boolean scanFourSubScan(int[] subSetIndex){
+		boolean hasChanged = false;
+		int subSetSize = subSetIndex.length;
+		CArray subSet = new CArray();
+		ArrayList<Integer> hiddenTwins; 
+		ArrayList<Integer> regularTwins; 
+		CArray whatShouldICallThis; 
+		for(int i : subSetIndex)
+			subSet.add(charSet.get(i));
+		for(int i = 0; i < size; i++){
+			hiddenTwins = new ArrayList<Integer>();
+			whatShouldICallThis = new CArray();
+			for(int f : ROW[i]){
+				if(field[f].canBeAllOf(subSet)){
+					hiddenTwins.add(f);
+					whatShouldICallThis.merge(field[f].canBe());
+				}
+			}
+			if(hiddenTwins.size() == subSetSize){
+				whatShouldICallThis.del(subSet);
+				Integer[] x = new Integer[hiddenTwins.size()];
+				for(int f : hiddenTwins.toArray(x)){
+					if(field[f].canNotBe(whatShouldICallThis)) hasChanged = true;
+				}
+			}
+			hiddenTwins = new ArrayList<Integer>();
+			whatShouldICallThis = new CArray();
+			for(int f : COL[i]){
+				if(field[f].canBeAllOf(subSet)){
+					hiddenTwins.add(f);
+					whatShouldICallThis.merge(field[f].canBe());
+				}
+			}
+			if(hiddenTwins.size() == subSetSize){
+				whatShouldICallThis.del(subSet);
+				Integer[] x = new Integer[hiddenTwins.size()];
+				for(int f : hiddenTwins.toArray(x)){
+					if(field[f].canNotBe(whatShouldICallThis)) hasChanged = true;
+				}
+			}
+		}
+		for(int a : area.areas()){
+			hiddenTwins = new ArrayList<Integer>();
+			whatShouldICallThis = new CArray();
+			for(int f : area.getAll(a)){
+				if(field[f].canBeAllOf(subSet)){
+					hiddenTwins.add(f);
+					whatShouldICallThis.merge(field[f].canBe());
+				}
+			}
+			if(hiddenTwins.size() == subSetSize){
+				whatShouldICallThis.del(subSet);
+				Integer[] x = new Integer[hiddenTwins.size()];
+				for(int f : hiddenTwins.toArray(x)){
+					if(field[f].canNotBe(whatShouldICallThis)) hasChanged = true;
+				}
+			}
+		}
+		/* Scan each row, column and area for regular twins, triplets and so on */
+		for(int i = 0; i < size; i++){
+			regularTwins = new ArrayList<Integer>();
+			whatShouldICallThis = new CArray();
+			for(int f : ROW[i]){
+				if(field[f].isDefined() && subSet.has(field[f].defined())){
+					regularTwins = new ArrayList<Integer>();
+					break;
+				}
+				if(subSet.hasAll(field[f].canBe())){
+					whatShouldICallThis.merge(field[f].canBe());
+					regularTwins.add(f);
+				}
+			}
+			if(regularTwins.size() == subSetSize){
+				System.err.println("Found twins of subset " + subSet + " in row " + i + "\n" + toString());
+				for(int f : ROW[i]){
+					System.err.print("Field " + f + ": " + field[f].canBe() + " => ");
+					if(!regularTwins.contains(f)){
+						if(field[f].canNotBe(subSet)) hasChanged = true;
+					}
+					System.err.println("Field " + f + ": " + field[f].canBe());
+				}
+				if(hasChanged) return true;
+			}
+			regularTwins = new ArrayList<Integer>();
+			whatShouldICallThis = new CArray();
+			for(int f : COL[i]){
+				if(field[f].isDefined() && subSet.has(field[f].defined())){
+					regularTwins = new ArrayList<Integer>();
+					break;
+				}
+				if(subSet.hasAll(field[f].canBe())){
+					whatShouldICallThis.merge(field[f].canBe());
+					regularTwins.add(f);
+				}
+			}
+			if(regularTwins.size() == subSetSize){
+				System.err.println("Found twins of subset " + subSet + " in column " + i + "\n" + toString());
+				for(int f : COL[i]){
+					System.err.print("Field " + f + ": " + field[f].canBe() + " => ");
+					if(!regularTwins.contains(f)){
+						if(field[f].canNotBe(subSet)) hasChanged = true;
+					}
+					System.err.println(field[f].canBe());
+				}
+				System.err.println("hasChanged = " + hasChanged);
+				if(hasChanged) return true;
+			}
+		}
+		for(int a : area.areas()){
+			regularTwins = new ArrayList<Integer>();
+			whatShouldICallThis = new CArray();
+			for(int f : area.getAll(a)){
+				if(field[f].isDefined() && subSet.has(field[f].defined())){
+					regularTwins = new ArrayList<Integer>();
+					break;
+				}
+				if(subSet.hasAll(field[f].canBe())){
+					whatShouldICallThis.merge(field[f].canBe());
+					regularTwins.add(f);
+				}
+			}
+			if(regularTwins.size() == subSetSize){
+				System.err.println("Found twins of subset " + subSet + " in area " + a + "\n" + toString());
+				for(int f : area.getAll(a)){
+					System.err.print("Field " + f + ": " + field[f].canBe() + " => ");
+					if(!regularTwins.contains(f)){
+						if(field[f].canNotBe(subSet)) hasChanged = true;
+					}
+					System.err.println("Field " + f + ": " + field[f].canBe());
+				}
+				if(hasChanged) return true;
+			}
+		}
+		return hasChanged;
+	}
+	public boolean check(){
 		/* Checks if the defined numbers
 		 * in the board follow the sudoku
 		 * rules
 		 * */
-		boolean error = false;
 		for(int i = 0; i < size; i++){
 			CArray row = new CArray();
 			CArray col = new CArray();
 			for(int f : ROW[i]){
 				char r = field[f].defined();
 				if(r != '\0'){
-					if(row.has(r)) error = true;
+					if(row.has(r)) return true;
 					row.add(r);
 				}
 			}
 			for(int f : COL[i]){
 				char c = field[f].defined();
 				if(c != '\0'){
-					if(col.has(c)) error = true;
+					if(col.has(c)) return true;
 					col.add(c);
 				}
 			}
@@ -273,21 +431,17 @@ class Board{
 			for(int f : area.getAll(a)){
 				char c = field[f].defined();
 				if(c != '\0'){
-					if(definedChars.has(c)) error = true;
+					if(definedChars.has(c)) return true;
 					definedChars.add(c);
 				}
 			}
 		}
-		if(error && exit){
-			System.err.println("ERROR! board is not in a legal state!");
-			System.err.println(toString());
-			System.exit(-1);
-		}
-		return error;
+		return false;
 	}
 	public boolean finished(){
-		for(Field f : field)
-			if(!f.isDefined()) return false;
+		for(int i = 0; i < size*size; i++){
+			if(field[i].isDefined() == false) return false;
+		}
 		return true;
 	}
 	public Board solve(){
@@ -300,11 +454,29 @@ class Board{
 		/* Loop until there's nothing more to do */
 		while(hasChanged){
 			hasChanged = false;
-			while(scanOne()) hasChanged = true;
-			while(scanTwo()) hasChanged = true;
-			while(scanThree()) hasChanged = true;
-			if(check(recurse < 0)) return null;
+			System.err.print("scan [1] ");
+			while(scanOne()){
+				System.out.print("+");
+				hasChanged = true;
+			}
+			System.err.print("-\nscan [2] ");
+			while(scanTwo()){
+				System.out.print("+");
+				hasChanged = true;
+			}
+			System.err.print("-\nscan [3] ");
+			while(scanThree()){
+				System.out.print("+");
+				hasChanged = true;
+			}
+			System.err.print("-\n");
 		}
+		System.err.print("scan [4] ");
+		while(scanFour()){
+			System.out.print("+");
+			hasChanged = true;
+		}System.err.print("-\n");
+		if(check()) return null;
 		/* are we done? */
 		if(finished()) return this;
 		if(recurse < 0){
