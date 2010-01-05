@@ -2,10 +2,15 @@ JavaSudoku
 
 A flexible sudoku solver capable of solving sudokus of different sizes and with different area shapes.
 
-This is a project whose main purpose is to help the author learn Java.
-This means slow coding, and lots of inefficient code that might be fixed later.
-
 usage:
-java JavaSudoku [-m mapfile.map] [-p] puzzle.sudoku
+------
+java JavaSudoku [-m mapfile.map] [-p] [-v] [-s sudokustring] puzzle.sudoku
 
-look at 9.map and easy.sudoku for an idea of how the map and sudoku syntax will be.
+Options:
+--------
+-m: Use custom map file
+-p: Print the sudoku, don't try to solve it
+-v: Be verbose
+-s: Load a standard 9x9 sudoku from a string argument
+
+look at 9.map and easy.sudoku for an example of how the syntax works.

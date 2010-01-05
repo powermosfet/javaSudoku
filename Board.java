@@ -1,18 +1,23 @@
 /*Board class
  *
- * contains:
- * - Field objects for all fields in the sudoku board
- * - An AreaMap that contains a map of the different areas
- * - solve method
- * - toString method
- * - And more!
- **/
+ * A Board object represents the sudoku board.
+ * It contains an array of Field objects, and an AreaMap.
+ *
+ * The solve() method runs the different scan-methods 
+ * in a loop until there's nothing more to change.
+ * If the board is not finished by then, it picks the first
+ * field with more than one option, and calls itself for 
+ * each of those options. This way, each possibility is 
+ * tested, recursively.
+ *
+ * The solve() method returns a new Board object if the 
+ * solve was successful. Otherwisw it returns null.
+ * */
 
 import java.io.* ;
 import java.util.* ;
 
 class Board{
-	private final int RECURSION_MAX = 10;
 	private final int[][] ROW;
 	private final int[][] COL;
 	private Field[] field;
@@ -20,6 +25,33 @@ class Board{
 	private CArray charSet;
 	private int size;
 
+	public Board(String puzzleString){
+		if(puzzleString.length() != 81){
+			System.err.println("Could not parse puzzle string");
+			System.exit(-1);
+		}
+		size = 9;
+		field = new Field[81];
+		area = new AreaMap("map/9.map", size);
+		char[] cCharSet = {'1','2','3','4','5','6','7','8','9'};
+		charSet = new CArray(cCharSet);
+		for(int i = 0; i < 81; i++){
+			char c = puzzleString.charAt(i);
+			if(charSet.has(c))
+				field[i] = new Field(charSet, c);
+			else
+				field[i] = new Field(charSet);
+		}
+		/* Generate the ROW and COL arrays */
+		ROW = new int[size][size];
+		COL = new int[size][size];
+		for(int i = 0; i < size; i++){
+			for(int j = 0; j < size; j++){
+				ROW[i][j] = size*i + j;
+				COL[i][j] = size*j + i;
+			}
+		}
+	}
 	public Board(String puzzleFileName, String mapFileName){
 		/* The default constructor
 		 * */
@@ -271,48 +303,48 @@ class Board{
 	private boolean scanFourSubScan(int[] subSetIndex) throws NoLegalCharactersException{
 		boolean hasChanged = false;
 		int subSetSize = subSetIndex.length;
-		ArrayList<Integer> regularTwins; 
+		ArrayList<Integer> twins; 
 		CArray thingy; 
 		CArray subSet = new CArray();
 		for(int i : subSetIndex)
 			subSet.add(charSet.get(i));
-		/* Scan each row, column and area for regular twins, triplets and so on */
+		/* Scan each row, column and area for twins */
 		for(int i = 0; i < size; i++){
-			regularTwins = new ArrayList<Integer>();
+			twins = new ArrayList<Integer>();
 			thingy = new CArray();
 			for(int f : ROW[i]){
 				if(field[f].isDefined() && subSet.has(field[f].defined())){
-					regularTwins = new ArrayList<Integer>();
+					twins = new ArrayList<Integer>();
 					break;
 				}
 				if(subSet.hasAll(field[f].canBe())){
 					thingy.merge(field[f].canBe());
-					regularTwins.add(f);
+					twins.add(f);
 				}
 			}
-			if(regularTwins.size() == subSetSize){
+			if(twins.size() == subSetSize){
 				for(int f : ROW[i]){
-					if(!regularTwins.contains(f)){
+					if(!twins.contains(f)){
 						if(field[f].canNotBe(subSet)) hasChanged = true;
 					}
 				}
 				if(hasChanged) return true;
 			}
-			regularTwins = new ArrayList<Integer>();
+			twins = new ArrayList<Integer>();
 			thingy = new CArray();
 			for(int f : COL[i]){
 				if(field[f].isDefined() && subSet.has(field[f].defined())){
-					regularTwins = new ArrayList<Integer>();
+					twins = new ArrayList<Integer>();
 					break;
 				}
 				if(subSet.hasAll(field[f].canBe())){
 					thingy.merge(field[f].canBe());
-					regularTwins.add(f);
+					twins.add(f);
 				}
 			}
-			if(regularTwins.size() == subSetSize){
+			if(twins.size() == subSetSize){
 				for(int f : COL[i]){
-					if(!regularTwins.contains(f)){
+					if(!twins.contains(f)){
 						if(field[f].canNotBe(subSet)) hasChanged = true;
 					}
 				}
@@ -320,21 +352,21 @@ class Board{
 			}
 		}
 		for(int a : area.areas()){
-			regularTwins = new ArrayList<Integer>();
+			twins = new ArrayList<Integer>();
 			thingy = new CArray();
 			for(int f : area.getAll(a)){
 				if(field[f].isDefined() && subSet.has(field[f].defined())){
-					regularTwins = new ArrayList<Integer>();
+					twins = new ArrayList<Integer>();
 					break;
 				}
 				if(subSet.hasAll(field[f].canBe())){
 					thingy.merge(field[f].canBe());
-					regularTwins.add(f);
+					twins.add(f);
 				}
 			}
-			if(regularTwins.size() == subSetSize){
+			if(twins.size() == subSetSize){
 				for(int f : area.getAll(a)){
-					if(!regularTwins.contains(f)){
+					if(!twins.contains(f)){
 						if(field[f].canNotBe(subSet)) hasChanged = true;
 					}
 				}
@@ -384,7 +416,17 @@ class Board{
 		}
 		return true;
 	}
-	public Board solve(){
+	public Board solve(boolean verbose){
+		/* The solve() method runs the different scan-methods 
+		 * in a loop until there's nothing more to change.
+		 * If the board is not finished by then, it picks the first
+		 * field with more than one option, and calls itself for 
+		 * each of those options. This way, each possibility is 
+		 * tested, recursively.
+		 *
+		 * The solve() method returns a new Board object if the 
+		 * solve was successful. Otherwisw it returns null.
+		 * */
 		boolean hasChanged;
 		Board solved, copy;
 		/* Loop until there's nothing more to do */
@@ -410,14 +452,18 @@ class Board{
 		if(check()) return null;
 		/* are we done? */
 		if(finished()) return this;
-		System.err.println("******************\n" + toString());
+		if(verbose){
+			for(int i = 0; i < size; i++)
+				System.out.print("**");
+			System.out.println("\n" + toString());
+		}
 		for(int i = 0; i < size*size; i++){
 			if(!field[i].isDefined()){					//Pick a field that is undefined
 				copy = new Board(this);
 				CArray choices = new CArray(copy.getField(i).canBe());
 				for(char c : choices.getCharArray()){	//Try each possibility
 					copy.getField(i).define(c);
-					solved = copy.solve();
+					solved = copy.solve(verbose);
 					if(solved != null) return solved;	//Succeed
 					copy = new Board(this);
 				}
