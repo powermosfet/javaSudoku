@@ -13,60 +13,82 @@ import java.util.* ;
 
 class Board{
 	private final int RECURSION_MAX = 10;
+	private final int[][] ROW;
+	private final int[][] COL;
 	private Field[] field;
 	private AreaMap area = null;
 	private CArray charSet;
 	private int size;
 
-	public Board(String puzzle, String map){
-		File puzzleFile = new File(puzzle);
+	public Board(String puzzleFileName, String mapFileName){
+		/* The default constructor
+		 * */
+		File puzzleFile = new File(puzzleFileName);
 		try{
 			Scanner s = new Scanner(puzzleFile);
 			String charSetString = "";
 			if(s.hasNext()){
-				charSetString = s.next();
+				charSetString = s.next();						//Get the character set
 			}else{
-				System.err.println("Error parsing puzzle file \'" + puzzle + "\'.");
+				System.err.println("Error parsing puzzleFileName file \'" + puzzleFileName + "\'.");
 				System.err.println("Could not find character set");
 				System.exit(-1);
 			}
-			charSet = new CArray(charSetString.split(","));
+			charSet = new CArray(charSetString.split(","));		//Convert charset to CArray
 			size = charSet.length();
-			field = new Field[size*size];
-			for(int i = 0; i < size*size; i++){
+			field = new Field[size*size];						//initialize field array
+			for(int i = 0; i < size*size; i++){					//and fill it
 				if(s.hasNext()){
 					char c = s.next().charAt(0);
 					if(charSet.has(c)){
-						field[i] = new Field(charSet, c);
+						field[i] = new Field(charSet, c);		//with defined
 					}else{
-						field[i] = new Field(charSet);
+						field[i] = new Field(charSet);			//and undefined characters
 					}
 				}else{
-					System.err.println("Error parsing puzzle file \'" + puzzle + "\'.");
+					System.err.println("Error parsing puzzleFileName file \'" + puzzleFileName + "\'.");
 					System.err.println("Not enough fields");
 					System.exit(-1);
 				}
 			}
 		} catch(FileNotFoundException e){
-			System.err.println(e);
+			System.err.println("Could not find sudoku file \'" + puzzleFileName + "\'");
 			System.exit(-1);
 		}
-		if(map.equals("")){
-			map = "map/" + size + ".map";
-			System.out.println("Using default map file \'" + map + "\'");
+		if(mapFileName.equals("")){								//If no map file is specified, use default
+			mapFileName = "map/" + size + ".map";				//map file for this size
+			System.out.println("Using default map file \'" + mapFileName + "\'");
 		}else{
-			System.out.println("Using custom map file \'" + map + "\'");
+			System.out.println("Using custom map file \'" + mapFileName + "\'");
 		}
-		area = new AreaMap(map, size);
+		area = new AreaMap(mapFileName, size);					//Initialize the AreaMap	
+		/* Generate the ROW and COL arrays */
+		ROW = new int[size][size];
+		COL = new int[size][size];
+		for(int i = 0; i < size; i++){
+			for(int j = 0; j < size; j++){
+				ROW[i][j] = size*i + j;
+				COL[i][j] = size*j + i;
+			}
+		}
 	}
 	public Board(Board original){
+		/* Copy constructor */
 		size = original.getSize();
+		ROW = original.getROW();			//These are final
+		COL = original.getCOL();			//so no "deep" copying is necessary
 		field = new Field[size*size];
 		for(int i = 0; i < size*size; i++){
 			field[i] = new Field(original.getField(i));
 		}
 		area = new AreaMap(original.getArea());
 		charSet = new CArray(original.getCharSet());
+	}
+	public int[][] getROW(){
+		return ROW;
+	}
+	public int[][] getCOL(){
+		return COL;
 	}
 	public int getSize(){
 		return size;
@@ -80,7 +102,7 @@ class Board{
 	public CArray getCharSet(){
 		return charSet;
 	}
-	private boolean aScan(){
+	private boolean scanOne(){
 		/* This method searches through each field's
 		 * row, column and area for defined numbers.
 		 * These numbers are removed from the current field.
@@ -115,44 +137,63 @@ class Board{
 		}
 		return changed;
 	}
-	private boolean anotherScan(){
+	private boolean scanTwo(){
 		/* This method checks if any character is only allowed
 		 * in one of the fields in its row, column or area.
 		 * If that's the case, that field is set to that character
 		 * */
 		boolean hasChanged = false;
+		/* Check every character */
 		for(char c : charSet.getCharArray()){
+			/* For each row/column */
 			for(int i = 0; i < size; i++){
 				int row = -1;
 				int col = -1;
-				for(int j = 0; j < size; j++){
-					if(field[size*i+j].canBe(c)){
-						row = (row < 0) ? size*i+j : size*size;
-					}
-					if(field[size*j+i].canBe(c)){
-						col = (col < 0) ? size*j+i : size*size;
+				/* Scan through row and check 
+				 * if it's legal in more than one field
+				 * */
+				for(int f : ROW[i]){
+					if(field[f].canBe(c)){
+						row = (row < 0) ? f : size*size;
 					}
 				}
+				/* if it's legal in only one field, set
+				 * that field to be that character
+				 * */
 				if(row >=0 && row < size*size && !field[row].isDefined()){
 					field[row].define(c);
 					hasChanged = true;
 				}
+				/* Scan through column and check 
+				 * if it's legal in more than one field
+				 * */
+				for(int f : COL[i]){
+					if(field[f].canBe(c)){
+						col = (col < 0) ? f : size*size;
+					}
+				}
+				/* if it's legal in only one field, set
+				 * that field to be that character
+				 * */
 				if(col >=0 && col < size && !field[col].isDefined()){
 					field[col].define(c);
 					hasChanged = true;
 				}
 			}
+			/* For each area */
 			for(int a : this.area.areas()){
+				/* Scan through area and check 
+				 * if it's legal in more than one field
+				 * */
 				int area = -1;
 				for(int f : this.area.getAll(a)){
 					if(field[f].canBe(c)){
-						if(area < 0){
-							area = f;
-						}else{
-							area = size*size;
-						}
+						area = (area < 0) ? f : size*size;
 					}
 				}
+				/* if it's legal in only one field, set
+				 * that field to be that character
+				 * */
 				if(area >=0 && area < size*size && !field[area].isDefined()){
 					field[area].define(c);
 					hasChanged = true;
@@ -161,14 +202,14 @@ class Board{
 		}
 		return hasChanged;
 	}
-	private boolean yetAnotherScan(){
+	private boolean scanThree(){
 		/* This method checks if any number is
 		 * legal only in one row or column of an
 		 * area. It then removes it from every field
 		 * that is in the same row or column but not in the same area
 		 * */
-		/* Iterate through each area in the board */
 		boolean hasChanged = false;
+		/* Iterate through each area in the board */
 		for(int a : area.areas()){
 			/* Then, for each possible character */
 			for(char c : charSet.getCharArray()){
@@ -179,6 +220,7 @@ class Board{
 				for(int f : area.getAll(a)){
 					if(field[f].defined() == c){
 						charDefined = true;
+						break;
 					}
 					if(field[f].canBe(c)){
 						row = (row < 0)? (int)(f / size) : size;
@@ -211,13 +253,15 @@ class Board{
 		for(int i = 0; i < size; i++){
 			CArray row = new CArray();
 			CArray col = new CArray();
-			for(int j = 0; j < size; j++){
-				char r = field[i*size+j].defined();
-				char c = field[j*size+i].defined();
+			for(int f : ROW[i]){
+				char r = field[f].defined();
 				if(r != '\0'){
 					if(row.has(r)) error = true;
 					row.add(r);
 				}
+			}
+			for(int f : COL[i]){
+				char c = field[f].defined();
 				if(c != '\0'){
 					if(col.has(c)) error = true;
 					col.add(c);
@@ -242,11 +286,9 @@ class Board{
 		return error;
 	}
 	public boolean finished(){
-		boolean isFinished = true;
-		for(Field f : field){
-			if(f.defined() == '\0') isFinished = false;
-		}
-		return isFinished;
+		for(Field f : field)
+			if(!f.isDefined()) return false;
+		return true;
 	}
 	public Board solve(){
 		System.out.println("Solving...");
@@ -255,20 +297,20 @@ class Board{
 	public Board solve(int recurse){
 		boolean hasChanged = true;
 		Board solved;
-		for(int i = 0; hasChanged; i++){
+		/* Loop until there's nothing more to do */
+		while(hasChanged){
 			hasChanged = false;
-			if(aScan()) hasChanged = true;
-			if(check(recurse < 0)) break;
-			if(anotherScan()) hasChanged = true;
-			if(check(recurse < 0)) break;
-			if(yetAnotherScan()) hasChanged = true;
-			if(check(recurse < 0)) break;
+			while(scanOne()) hasChanged = true;
+			while(scanTwo()) hasChanged = true;
+			while(scanThree()) hasChanged = true;
+			if(check(recurse < 0)) return null;
 		}
-		if(finished() && !check(false)) return this;
+		/* are we done? */
+		if(finished()) return this;
 		if(recurse < 0){
 			System.out.print("Inserting random numbers.\nRecursion level: ");
 			for(int rec = 0; rec <= RECURSION_MAX; rec++){
-				System.out.print((rec == 0)? "" + rec : "," + rec);
+				System.out.print(((rec == 0)? "":",") + rec);
 				for(int i = 0; i < size*size; i++){
 					if(!field[i].isDefined()){
 						Board copy = new Board(this);
@@ -282,6 +324,7 @@ class Board{
 								return solved;
 							}
 						}
+						copy.getField(i).canBe(choices);
 					}
 				}
 			}
@@ -297,6 +340,7 @@ class Board{
 					solved = copy.solve(recurse - 1);
 					if(solved != null) return solved;
 				}
+				copy.getField(i).canBe(choices);
 			}
 		}
 		return null;
