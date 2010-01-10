@@ -277,100 +277,68 @@ class Board{
 		return hasChanged;
 	}
 	private boolean scanFour() throws NoLegalCharactersException{
-		/* This method scans the board looking
-		 * for twins, triplets and so on
+		/* This method looks for n equal fields with n possibilities
+		 * in the same unit (row / column / area)
+		 * aka subset scan
 		 * */
 		boolean hasChanged = false;
-		for(int subSetSize = 2; subSetSize < size; subSetSize++){				//generate subsets (of charSet) of increasing size
-			int[] subSetIndex = new int[subSetSize];
-			for(int i = 0; i < subSetSize; i++)
-				subSetIndex[i] = i;
-			hasChanged = scanFourSubScan(subSetIndex);
-			int iMax = subSetSize - 1;
-			int i = iMax;
-			while(true){
-				for(;(i >= 0)&&((subSetIndex[i] >= size-1)||(i < iMax && subSetIndex[i] >= subSetIndex[i+1]-1)); i--){}
-				if(i < 0) break;
-				subSetIndex[i] += 1;
-				for(; i < iMax; i++){
-					subSetIndex[i+1] = subSetIndex[i] + 1;
-				}
-				if(scanFourSubScan(subSetIndex)) hasChanged = true;
+		for(int i = 0; i < size; i++){
+			if(subSetScan(ROW[i])){
+				if(check()) return false;
+				hasChanged = true;
+			}
+			if(subSetScan(COL[i])){
+				if(check()) return false;
+				hasChanged = true;
+			}
+		}
+		for(int a : area.areas()){
+			if(subSetScan(area.getAll(a))){
+				if(check()) return false;
+				hasChanged = true;
 			}
 		}
 		return hasChanged;
 	}
-	private boolean scanFourSubScan(int[] subSetIndex) throws NoLegalCharactersException{
+	private boolean subSetScan(int[] fields) throws NoLegalCharactersException{
 		boolean hasChanged = false;
-		int subSetSize = subSetIndex.length;
-		ArrayList<Integer> twins; 
-		CArray thingy; 
-		CArray subSet = new CArray();
-		for(int i : subSetIndex)
-			subSet.add(charSet.get(i));
-		/* Scan each row, column and area for twins */
-		for(int i = 0; i < size; i++){
-			twins = new ArrayList<Integer>();
-			thingy = new CArray();
-			for(int f : ROW[i]){
-				if(field[f].isDefined() && subSet.has(field[f].defined())){
-					twins = new ArrayList<Integer>();
-					break;
-				}
-				if(subSet.hasAll(field[f].canBe())){
-					thingy.merge(field[f].canBe());
-					twins.add(f);
-				}
+		ArrayList<CArray> unique = new ArrayList<CArray>();		//list of unique fields
+		ArrayList<CArray> duplicates = new ArrayList<CArray>();	//list of fields that has duplicates
+		ArrayList<Integer> dupCount = new ArrayList<Integer>();	//the number of duplicates 
+		int undefined = 0;										//the number of undefined fields in this row
+		for(int f : fields){
+			if(field[f].isDefined()) continue;
+			if(field[f].canBe().isEmpty()) return true;
+			undefined++;
+			CArray legal = field[f].canBe();
+			int pos =  -1;
+			for(int i = 0; i < unique.size(); i++){
+				if(unique.get(i).equals(legal)) pos = i;		//Has this subset occured before?
 			}
-			if(twins.size() == subSetSize){
-				for(int f : ROW[i]){
-					if(!twins.contains(f)){
-						if(field[f].canNotBe(subSet)) hasChanged = true;
-					}
+			if(pos < 0){
+				unique.add(new CArray(legal));					//add it to unique list
+			}else{
+				pos = -1;
+				for(int i = 0; i < duplicates.size(); i++){
+					if(duplicates.get(i).equals(legal)) pos = i;
 				}
-				if(hasChanged) return true;
-			}
-			twins = new ArrayList<Integer>();
-			thingy = new CArray();
-			for(int f : COL[i]){
-				if(field[f].isDefined() && subSet.has(field[f].defined())){
-					twins = new ArrayList<Integer>();
-					break;
+				if(pos < 0){
+					duplicates.add(new CArray(legal));			//add it to duplicate list
+					dupCount.add(2);
+				}else{
+					dupCount.set(pos, dupCount.get(pos) + 1);	//or count another duplicate
 				}
-				if(subSet.hasAll(field[f].canBe())){
-					thingy.merge(field[f].canBe());
-					twins.add(f);
-				}
-			}
-			if(twins.size() == subSetSize){
-				for(int f : COL[i]){
-					if(!twins.contains(f)){
-						if(field[f].canNotBe(subSet)) hasChanged = true;
-					}
-				}
-				if(hasChanged) return true;
 			}
 		}
-		for(int a : area.areas()){
-			twins = new ArrayList<Integer>();
-			thingy = new CArray();
-			for(int f : area.getAll(a)){
-				if(field[f].isDefined() && subSet.has(field[f].defined())){
-					twins = new ArrayList<Integer>();
-					break;
-				}
-				if(subSet.hasAll(field[f].canBe())){
-					thingy.merge(field[f].canBe());
-					twins.add(f);
-				}
-			}
-			if(twins.size() == subSetSize){
-				for(int f : area.getAll(a)){
-					if(!twins.contains(f)){
-						if(field[f].canNotBe(subSet)) hasChanged = true;
+		if(undefined > 2){										//If there's more than 2 undefined areas
+			for(int j = 0; j < duplicates.size(); j++){			//scan through the duplicate subsets
+				if(duplicates.get(j).length() == dupCount.get(j)){//if the number of identical subsets equals the size of the subset, we have a match!
+					for(int f : fields){						//remove the subset from all fields that is not a duplicate of the subset
+						if(!field[f].isDefined() && !field[f].canBe().equals(duplicates.get(j))){
+							if(field[f].canNotBe(duplicates.get(j))) hasChanged = true;
+						}
 					}
 				}
-				if(hasChanged) return true;
 			}
 		}
 		return hasChanged;
@@ -378,7 +346,8 @@ class Board{
 	public boolean check(){
 		/* Checks if the defined numbers
 		 * in the board follow the sudoku
-		 * rules
+		 * rules. Returns true if there are
+		 * errors, false if the board is OK
 		 * */
 		for(int i = 0; i < size; i++){
 			CArray row = new CArray();
@@ -411,12 +380,13 @@ class Board{
 		return false;
 	}
 	public boolean finished(){
+		/* Checks if every field is defined */
 		for(int i = 0; i < size*size; i++){
 			if(field[i].isDefined() == false) return false;
 		}
 		return true;
 	}
-	public Board solve(boolean verbose){
+	public Board solve(boolean verbose, boolean bruteForce){
 		/* The solve() method runs the different scan-methods 
 		 * in a loop until there's nothing more to change.
 		 * If the board is not finished by then, it picks the first
@@ -425,45 +395,42 @@ class Board{
 		 * tested, recursively.
 		 *
 		 * The solve() method returns a new Board object if the 
-		 * solve was successful. Otherwisw it returns null.
+		 * solve was successful. Otherwise it returns null.
 		 * */
-		boolean hasChanged;
+		boolean hasChanged = true;
 		Board solved, copy;
 		/* Loop until there's nothing more to do */
-		do{
-			do{
-				hasChanged = false;
-				try{
-					while(scanOne()) hasChanged = true;
-					while(scanTwo()) hasChanged = true;
-					while(scanThree()) hasChanged = true;
-				}catch(NoLegalCharactersException e){
-					return null;
-				}
-			}while(hasChanged);
-			/* Try scanFour */
-			/*
+		while(!bruteForce && hasChanged){
+			hasChanged = false;
 			try{
-				hasChanged = scanFour();
+				while(scanOne()) hasChanged = true;
+				if(hasChanged) continue;
+				while(scanTwo()) hasChanged = true;
+				if(hasChanged) continue;
+				while(scanThree()) hasChanged = true;
+				if(hasChanged) continue;
+				while(scanFour()) hasChanged = true;
 			}catch(NoLegalCharactersException e){
 				return null;
-			}*/
-		}while(hasChanged);
+			}
+		}
 		if(check()) return null;
 		/* are we done? */
 		if(finished()) return this;
+		/* If we are going to be verbose, print the board in the current state */
 		if(verbose){
 			for(int i = 0; i < size; i++)
-				System.out.print("**");
+				System.out.print((i+1 < size)? "**":"*");
 			System.out.println("\n" + toString());
 		}
+		/* The bruteforce part of the solve method */
 		for(int i = 0; i < size*size; i++){
 			if(!field[i].isDefined()){					//Pick a field that is undefined
 				copy = new Board(this);
 				CArray choices = new CArray(copy.getField(i).canBe());
 				for(char c : choices.getCharArray()){	//Try each possibility
 					copy.getField(i).define(c);
-					solved = copy.solve(verbose);
+					solved = copy.solve(verbose, bruteForce);
 					if(solved != null) return solved;	//Succeed
 					copy = new Board(this);
 				}
@@ -476,7 +443,7 @@ class Board{
 		String s = "";
 		for(int i = 0; i < size*size; i++){
 			s += field[i].toString();
-			if(i % size == size - 1 && i+1 < size*size) s += "\n";
+			if(i%size == size-1 && i+1 < size*size) s += "\n";
 		}
 		return s;
 	}

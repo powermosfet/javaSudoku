@@ -20,7 +20,7 @@ class Field{
 		 * with identical data to original
 		 * */
 		charSet = new CArray(original.getCharSet());
-		legal = new CArray(original.getLegal());
+		legal = new CArray(original.canBe());
 	}
 	public Field(CArray charSet){
 		/* Create an undefined Field. all characters
@@ -46,10 +46,6 @@ class Field{
 	public CArray getCharSet(){
 		/* Return charSet */
 		return charSet;
-	}
-	public CArray getLegal(){
-		/* Return legal */
-		return legal;
 	}
 	public void define(char c){
 		/* Reduce legal to contain only
@@ -99,6 +95,10 @@ class Field{
 		boolean returnValue = legal.del(c);
 		if(legal.isEmpty()) throw new NoLegalCharactersException("Field has no legal characters");
 		return returnValue;
+	}
+	public boolean equals(Field other){
+		if(!charSet.equals(other.getCharSet())) return false;
+		return legal.equals(other.canBe());
 	}
 	public String toString(){
 		if(legal.isEmpty()){

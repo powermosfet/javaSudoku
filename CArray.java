@@ -166,6 +166,7 @@ class CArray{
 	}//add
 	public boolean del(char c){
 		/* Deletes all occurrences of c in array */
+		if(data == null) return false;
 		int hits = 0;
 		char[] smaller;
 		for(char x:data){
@@ -173,15 +174,22 @@ class CArray{
 				hits++;
 			}//if
 		}//for
-		smaller = new char[data.length - hits];
-		int i = 0;					//Allocate new array
-		for(char x:data){
-			if(x != c){
-				smaller[i++] = x;	//Add all characters that are not c
-			}//if
-		}//for
-		data = smaller;
-		return (hits > 0);			//did we delete anything?
+		if(hits == data.length){
+			data = null;
+			return true;
+		}else if(hits > 0){
+			smaller = new char[data.length - hits];
+			int i = 0;					//Allocate new array
+			for(char x:data){
+				if(x != c){
+					smaller[i++] = x;	//Add all characters that are not c
+				}//if
+			}//for
+			data = smaller;
+			return true;
+		}else{
+			return false;
+		}
 	}//del
 	public boolean del(CArray other){
 		/* Deletes every instance of
@@ -210,5 +218,16 @@ class CArray{
 		/* Deletes all content */
 		data = null;
 	}//empty
+	public boolean equals(CArray other){
+		if(isEmpty() && other.isEmpty()) return true;
+		if(isEmpty() || other.isEmpty()) return false;
+		if(data.length != other.length()) return false;
+		sort();
+		other.sort();
+		for(int i = 0; i < data.length; i++){
+			if(data[i] != other.get(i)) return false;
+		}
+		return true;
+	}
 }
 
