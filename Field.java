@@ -100,6 +100,7 @@ class Field{
 		if(!charSet.equals(other.getCharSet())) return false;
 		return legal.equals(other.canBe());
 	}
+	@Override
 	public String toString(){
 		if(legal.isEmpty()){
 			System.err.println("ERROR!");
